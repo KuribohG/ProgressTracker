@@ -376,3 +376,139 @@ window.addEventListener('load', () => {
         progressFillElement.style.transition = 'width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
     }, 500);
 });
+
+// ============================================================================
+// Firework Effect on Click
+// ============================================================================
+
+// Get current background color from CSS variable or calculate from current time
+function getCurrentBackgroundColor() {
+    // Try to get from CSS variable first (set by updateBackgroundGradient)
+    const cssColor = getComputedStyle(document.documentElement).getPropertyValue('--time-based-bg').trim();
+    if (cssColor && cssColor !== '') {
+        return cssColor;
+    }
+
+    // Fallback: calculate from current time
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const second = now.getSeconds();
+    return getTimeBasedColor(hour, minute, second);
+}
+
+// Create a single firework particle
+function createParticle(x, y, color) {
+    const particle = document.createElement('div');
+    particle.style.position = 'fixed';
+    particle.style.left = `${x}px`;
+    particle.style.top = `${y}px`;
+    particle.style.width = '8px';
+    particle.style.height = '8px';
+    particle.style.borderRadius = '50%';
+    particle.style.backgroundColor = color;
+    particle.style.pointerEvents = 'none';
+    particle.style.zIndex = '9999';
+    particle.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+
+    // Random velocity direction
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 4; // pixels per frame
+    const vx = Math.cos(angle) * speed;
+    const vy = Math.sin(angle) * speed;
+
+    // Random lifespan
+    const lifespan = 800 + Math.random() * 700; // ms
+
+    document.body.appendChild(particle);
+
+    // Animate particle
+    let startTime = Date.now();
+    const startX = x;
+    const startY = y;
+
+    function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / lifespan, 1);
+
+        if (progress >= 1) {
+            // Remove particle when animation complete
+            particle.remove();
+            return;
+        }
+
+        // Apply easing out for fade effect
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+
+        // Position with gravity
+        const gravity = 0.05;
+        const currentX = startX + vx * elapsed * 0.1;
+        const currentY = startY + vy * elapsed * 0.1 + 0.5 * gravity * Math.pow(elapsed * 0.1, 2);
+
+        // Update position and opacity
+        particle.style.transform = `translate(${currentX - x}px, ${currentY - y}px)`;
+        particle.style.opacity = 1 - easeOut;
+        particle.style.scale = 1 - easeOut * 0.5;
+
+        // Continue animation
+        requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+    return particle;
+}
+
+// Create firework explosion at position (x, y)
+function createFirework(x, y, color = null) {
+    const fireworkColor = color || getCurrentBackgroundColor();
+    const particleCount = 30 + Math.floor(Math.random() * 20);
+
+    // Create main explosion particles
+    for (let i = 0; i < particleCount; i++) {
+        setTimeout(() => {
+            createParticle(x, y, fireworkColor);
+        }, i * 10); // Stagger particles slightly
+    }
+
+    // Create a few secondary particles with lighter/darker variants
+    const rgb = hexToRgb(fireworkColor);
+
+    // Lighter variant
+    const lighterRgb = rgb.map(channel => Math.min(255, channel + 50));
+    const lighterColor = rgbToHex(lighterRgb);
+
+    // Darker variant
+    const darkerRgb = rgb.map(channel => Math.max(0, channel - 30));
+    const darkerColor = rgbToHex(darkerRgb);
+
+    for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+            createParticle(x, y, Math.random() > 0.5 ? lighterColor : darkerColor);
+        }, 100 + i * 20);
+    }
+}
+
+// Add click event listener for firework effect
+function setupFireworkClickListener() {
+    document.addEventListener('click', (e) => {
+        // Don't trigger on interactive elements to avoid interference
+        if (e.target.tagName === 'BUTTON' ||
+            e.target.tagName === 'A' ||
+            e.target.tagName === 'INPUT' ||
+            e.target.closest('button') ||
+            e.target.closest('a') ||
+            e.target.closest('input')) {
+            return;
+        }
+
+        createFirework(e.clientX, e.clientY);
+    });
+}
+
+// Initialize firework effect after page loads
+window.addEventListener('DOMContentLoaded', () => {
+    // Wait a bit for other initialization to complete
+    setTimeout(() => {
+        setupFireworkClickListener();
+    }, 1000);
+});
