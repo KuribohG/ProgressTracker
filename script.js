@@ -1,20 +1,25 @@
-// Progress Tracker - March 4 to April 4
+// Progress Tracker
+// Uses configuration from config.js for start and end dates
 // Updates with second-level precision
 
-// Define start and end dates
-// Note: Months are 0-indexed in JavaScript (0 = January, 1 = February, etc.)
-const START_DATE = new Date(2026, 2, 4, 0, 0, 0); // March 4, 2026, 00:00:00
-const END_DATE = new Date(2026, 3, 4, 0, 0, 0);  // April 4, 2026, 00:00:00
-const TOTAL_DURATION = END_DATE - START_DATE; // Total milliseconds
+// Global variables (will be initialized in init())
+let START_DATE, END_DATE, TOTAL_DURATION;
+let percentageElement, progressFillElement, daysElement, hoursElement, minutesElement, secondsElement, currentTimeElement;
 
-// DOM Elements
-const percentageElement = document.getElementById('percentage');
-const progressFillElement = document.getElementById('progress-fill');
-const daysElement = document.getElementById('days');
-const hoursElement = document.getElementById('hours');
-const minutesElement = document.getElementById('minutes');
-const secondsElement = document.getElementById('seconds');
-const currentTimeElement = document.getElementById('current-time');
+// Configuration is loaded from config.js
+if (typeof window.CONFIG === 'undefined') {
+    console.error('CONFIG not found. Make sure config.js is loaded before script.js');
+    // Fallback to default dates if config is missing
+    window.CONFIG = {
+        START_DATE: new Date(2026, 2, 4, 0, 0, 0),
+        END_DATE: new Date(2026, 3, 4, 0, 0, 0),
+        DATE_FORMAT: {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }
+    };
+}
 
 // Format number with leading zero
 function padZero(num, length = 2) {
@@ -23,7 +28,7 @@ function padZero(num, length = 2) {
 
 // Format date to readable string
 function formatDate(date) {
-    const options = {
+    const options = window.CONFIG.DATE_FORMAT || {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -86,11 +91,14 @@ function updateProgress() {
 function updateProgressBarColor(percentage) {
     let color;
 
-    if (percentage < 25) {
+    // Use thresholds from config or defaults
+    const thresholds = window.CONFIG.COLOR_THRESHOLDS || { low: 25, medium: 50, high: 75 };
+
+    if (percentage < thresholds.low) {
         color = 'linear-gradient(90deg, #4f46e5, #8b5cf6)'; // Purple
-    } else if (percentage < 50) {
+    } else if (percentage < thresholds.medium) {
         color = 'linear-gradient(90deg, #3b82f6, #4f46e5)'; // Blue to purple
-    } else if (percentage < 75) {
+    } else if (percentage < thresholds.high) {
         color = 'linear-gradient(90deg, #8b5cf6, #ec4899)'; // Purple to pink
     } else {
         color = 'linear-gradient(90deg, #ec4899, #f59e0b)'; // Pink to orange
@@ -101,6 +109,28 @@ function updateProgressBarColor(percentage) {
 
 // Initialize the page
 function init() {
+    // Initialize global variables
+    START_DATE = window.CONFIG.START_DATE;
+    END_DATE = window.CONFIG.END_DATE;
+    TOTAL_DURATION = END_DATE - START_DATE;
+
+    // Initialize DOM element references
+    percentageElement = document.getElementById('percentage');
+    progressFillElement = document.getElementById('progress-fill');
+    daysElement = document.getElementById('days');
+    hoursElement = document.getElementById('hours');
+    minutesElement = document.getElementById('minutes');
+    secondsElement = document.getElementById('seconds');
+    currentTimeElement = document.getElementById('current-time');
+
+    // Debug: Check if elements were found
+    if (!currentTimeElement) {
+        console.error('currentTimeElement not found');
+    }
+    if (!percentageElement) {
+        console.error('percentageElement not found');
+    }
+
     // Update immediately on load
     updateProgress();
 
@@ -112,6 +142,14 @@ function init() {
     document.querySelector('.start-date .time').textContent = formatTime(START_DATE);
     document.querySelector('.end-date .date').textContent = formatDate(END_DATE);
     document.querySelector('.end-date .time').textContent = formatTime(END_DATE);
+
+    // Update page title and subtitle
+    document.title = `Progress Tracker: ${formatDate(START_DATE)} - ${formatDate(END_DATE)}`;
+    document.getElementById('subtitle').textContent = `Tracking time from ${formatDate(START_DATE)} to ${formatDate(END_DATE)}`;
+
+    // Update info card dates
+    document.getElementById('info-start-date').textContent = formatDate(START_DATE);
+    document.getElementById('info-end-date').textContent = formatDate(END_DATE);
 
     // Add some visual feedback when countdown updates
     const countdownValues = [daysElement, hoursElement, minutesElement, secondsElement];

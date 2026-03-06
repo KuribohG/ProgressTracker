@@ -1,6 +1,6 @@
 # Progress Tracker for GitHub Pages
 
-A real-time progress tracker that visualizes the elapsed time between **March 4, 2026** and **April 4, 2026** with second-level precision.
+A real-time progress tracker that visualizes the elapsed time between configurable start and end dates with second-level precision.
 
 ## Features
 
@@ -40,18 +40,25 @@ A real-time progress tracker that visualizes the elapsed time between **March 4,
 
 ### Customizing Dates
 
-To change the start and end dates:
+To change the start and end dates, simply edit the `config.js` file:
 
-1. Open `script.js` in a text editor
-2. Find these lines (around line 6-7):
+1. Open `config.js` in a text editor
+2. Modify the `START_DATE` and `END_DATE` values:
    ```javascript
-   const START_DATE = new Date(2026, 2, 4, 0, 0, 0); // March 4, 2026
-   const END_DATE = new Date(2026, 3, 4, 0, 0, 0);  // April 4, 2026
+   const CONFIG = {
+       START_DATE: new Date(2026, 2, 4, 0, 0, 0),  // March 4, 2026
+       END_DATE: new Date(2026, 3, 4, 0, 0, 0),   // April 4, 2026
+       // ...
+   };
    ```
 3. Change the dates (remember: months are 0-indexed in JavaScript)
-   - `new Date(year, month-1, day, hour, minute, second)`
+   - `new Date(year, month, day, hour, minute, second)`
+   - Month: 0 = January, 1 = February, ..., 11 = December
    - Example: `new Date(2025, 0, 1, 0, 0, 0)` = January 1, 2025
-4. Update the dates in `index.html` if you want to change the displayed text
+   - Example: `new Date(2026, 2, 4, 0, 0, 0)` = March 4, 2026
+4. You can also customize date format and color thresholds in the same file
+
+All text on the page (title, dates, descriptions) will update automatically based on your configuration.
 
 ## File Structure
 
@@ -59,6 +66,7 @@ To change the start and end dates:
 ├── index.html          # Main HTML file
 ├── style.css           # Stylesheet
 ├── script.js           # JavaScript logic with real-time updates
+├── config.js           # Configuration file for dates and settings
 ├── favicon.ico         # Website icon
 ├── .nojekyll           # Disables Jekyll processing on GitHub Pages
 └── README.md           # This documentation file
