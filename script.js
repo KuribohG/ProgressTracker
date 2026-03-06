@@ -512,3 +512,185 @@ window.addEventListener('DOMContentLoaded', () => {
         setupFireworkClickListener();
     }, 1000);
 });
+
+// ============================================================================
+// Pomodoro Timer
+// ============================================================================
+
+// Pomodoro constants
+const POMODORO_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
+
+// Pomodoro state
+let pomodoroInterval = null;
+let pomodoroEndTime = null;
+let pomodoroRunning = false;
+
+// DOM elements
+let pomodoroDisplayElement = null;
+let pomodoroStartBtnElement = null;
+let pomodoroResetBtnElement = null;
+
+// Format time as MM:SS
+function formatPomodoroTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Update pomodoro display
+function updatePomodoroDisplay() {
+    if (!pomodoroDisplayElement) return;
+
+    if (pomodoroRunning && pomodoroEndTime) {
+        const now = Date.now();
+        const remaining = Math.max(0, pomodoroEndTime - now);
+        pomodoroDisplayElement.textContent = formatPomodoroTime(remaining);
+
+        if (remaining <= 0) {
+            // Timer finished
+            pomodoroRunning = false;
+            clearInterval(pomodoroInterval);
+            pomodoroInterval = null;
+            pomodoroDisplayElement.textContent = "00:00";
+            pomodoroStartBtnElement.style.display = 'block';
+            pomodoroResetBtnElement.style.display = 'none';
+
+            // Show notification
+            if (Notification.permission === 'granted') {
+                new Notification('Pomodoro Timer', {
+                    body: 'Time is up! Take a break.',
+                    icon: '/favicon.ico'
+                });
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
+
+            // Save state
+            savePomodoroState();
+        }
+    } else {
+        // Not running, show default 25:00
+        pomodoroDisplayElement.textContent = "25:00";
+    }
+}
+
+// Start pomodoro timer
+function startPomodoro() {
+    if (pomodoroRunning) return;
+
+    pomodoroRunning = true;
+    pomodoroEndTime = Date.now() + POMODORO_DURATION;
+
+    // Update UI
+    pomodoroStartBtnElement.style.display = 'none';
+    pomodoroResetBtnElement.style.display = 'block';
+
+    // Start interval
+    if (pomodoroInterval) {
+        clearInterval(pomodoroInterval);
+    }
+    pomodoroInterval = setInterval(updatePomodoroDisplay, 1000);
+
+    // Save state
+    savePomodoroState();
+}
+
+// Reset pomodoro timer
+function resetPomodoro() {
+    pomodoroRunning = false;
+    pomodoroEndTime = null;
+
+    if (pomodoroInterval) {
+        clearInterval(pomodoroInterval);
+        pomodoroInterval = null;
+    }
+
+    // Update UI
+    pomodoroStartBtnElement.style.display = 'block';
+    pomodoroResetBtnElement.style.display = 'none';
+    pomodoroDisplayElement.textContent = "25:00";
+
+    // Save state
+    savePomodoroState();
+}
+
+// Save pomodoro state to localStorage
+function savePomodoroState() {
+    const state = {
+        running: pomodoroRunning,
+        endTime: pomodoroEndTime,
+        savedAt: Date.now()
+    };
+    localStorage.setItem('pomodoroState', JSON.stringify(state));
+}
+
+// Load pomodoro state from localStorage
+function loadPomodoroState() {
+    try {
+        const saved = localStorage.getItem('pomodoroState');
+        if (!saved) return;
+
+        const state = JSON.parse(saved);
+        if (!state || !state.endTime) return;
+
+        // Check if timer was running and hasn't expired
+        if (state.running && state.endTime) {
+            const now = Date.now();
+            const remaining = state.endTime - now;
+
+            if (remaining > 0) {
+                // Timer was running and still has time left
+                pomodoroRunning = true;
+                pomodoroEndTime = state.endTime;
+
+                // Update UI
+                pomodoroStartBtnElement.style.display = 'none';
+                pomodoroResetBtnElement.style.display = 'block';
+
+                // Start interval
+                if (pomodoroInterval) {
+                    clearInterval(pomodoroInterval);
+                }
+                pomodoroInterval = setInterval(updatePomodoroDisplay, 1000);
+            } else {
+                // Timer expired while page was closed
+                resetPomodoro();
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load pomodoro state:', error);
+        resetPomodoro();
+    }
+}
+
+// Initialize pomodoro timer
+function initPomodoro() {
+    // Get DOM elements
+    pomodoroDisplayElement = document.getElementById('pomodoro-display');
+    pomodoroStartBtnElement = document.getElementById('pomodoro-start-btn');
+    pomodoroResetBtnElement = document.getElementById('pomodoro-reset-btn');
+
+    if (!pomodoroDisplayElement || !pomodoroStartBtnElement || !pomodoroResetBtnElement) {
+        console.error('Pomodoro elements not found');
+        return;
+    }
+
+    // Add event listeners
+    pomodoroStartBtnElement.addEventListener('click', startPomodoro);
+    pomodoroResetBtnElement.addEventListener('click', resetPomodoro);
+
+    // Load saved state
+    loadPomodoroState();
+
+    // Initial display update
+    updatePomodoroDisplay();
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+// Initialize pomodoro when DOM is loaded
+window.addEventListener('DOMContentLoaded', initPomodoro);
