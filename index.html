@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Tracker: March 4 - April 4</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calendar-alt"></i> Progress Tracker</h1>
+            <p class="subtitle">Tracking time from March 4 to April 4</p>
+        </header>
+
+        <main>
+            <div class="progress-card">
+                <div class="time-range">
+                    <div class="start-date">
+                        <h3><i class="fas fa-play-circle"></i> Start Date</h3>
+                        <p class="date">March 4, 2026</p>
+                        <p class="time">00:00:00</p>
+                    </div>
+                    <div class="end-date">
+                        <h3><i class="fas fa-flag-checkered"></i> End Date</h3>
+                        <p class="date">April 4, 2026</p>
+                        <p class="time">00:00:00</p>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <h2><i class="fas fa-chart-line"></i> Overall Progress</h2>
+                        <div class="percentage" id="percentage">0.00%</div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <span>0%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="time-remaining">
+                    <h2><i class="fas fa-clock"></i> Time Remaining</h2>
+                    <div class="countdown" id="countdown">
+                        <div class="time-unit">
+                            <div class="value" id="days">0</div>
+                            <div class="label">Days</div>
+                        </div>
+                        <div class="separator">:</div>
+                        <div class="time-unit">
+                            <div class="value" id="hours">00</div>
+                            <div class="label">Hours</div>
+                        </div>
+                        <div class="separator">:</div>
+                        <div class="time-unit">
+                            <div class="value" id="minutes">00</div>
+                            <div class="label">Minutes</div>
+                        </div>
+                        <div class="separator">:</div>
+                        <div class="time-unit">
+                            <div class="value" id="seconds">00</div>
+                            <div class="label">Seconds</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="current-time">
+                    <h3><i class="fas fa-calendar-check"></i> Current Time</h3>
+                    <p id="current-time">Loading...</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h2><i class="fas fa-info-circle"></i> About This Tracker</h2>
+                <p>This progress tracker visualizes the elapsed time between <strong>March 4, 2026</strong> and <strong>April 4, 2026</strong>.</p>
+                <p>The progress bar updates in real-time with second-level precision, showing exactly how much of this time period has passed.</p>
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Real-time updates every second</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-percentage"></i>
+                        <span>Precise percentage calculation</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Responsive design for all devices</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Made with <i class="fas fa-heart"></i> for GitHub Pages</p>
+            <p class="github-link">
+                <i class="fab fa-github"></i>
+                <a href="https://github.com" target="_blank">View on GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
