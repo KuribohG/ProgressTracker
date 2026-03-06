@@ -87,24 +87,103 @@ function updateProgress() {
     updateProgressBarColor(percentage);
 }
 
-// Update progress bar color based on percentage
-function updateProgressBarColor(percentage) {
-    let color;
+// Convert hex color to RGB array
+function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return [r, g, b];
+}
 
-    // Use thresholds from config or defaults
-    const thresholds = window.CONFIG.COLOR_THRESHOLDS || { low: 25, medium: 50, high: 75 };
+// Convert RGB array to hex color
+function rgbToHex(rgb) {
+    const [r, g, b] = rgb;
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
 
-    if (percentage < thresholds.low) {
-        color = 'linear-gradient(90deg, #4f46e5, #8b5cf6)'; // Purple
-    } else if (percentage < thresholds.medium) {
-        color = 'linear-gradient(90deg, #3b82f6, #4f46e5)'; // Blue to purple
-    } else if (percentage < thresholds.high) {
-        color = 'linear-gradient(90deg, #8b5cf6, #ec4899)'; // Purple to pink
-    } else {
-        color = 'linear-gradient(90deg, #ec4899, #f59e0b)'; // Pink to orange
+// Linear interpolation between two RGB colors
+function interpolateColor(color1, color2, factor) {
+    const result = color1.map((channel, index) => {
+        return Math.round(channel + (color2[index] - channel) * factor);
+    });
+    return result;
+}
+
+// Get color at specific percentage based on gradient stops
+function getColorAtPercentage(percentage) {
+    // Gradient stops: position (0-1) and hex color
+    const stops = [
+        { pos: 0.0, color: '#4f46e5' },
+        { pos: 0.2, color: '#8b5cf6' },
+        { pos: 0.57, color: '#ec4899' },
+        { pos: 1.0, color: '#f59e0b' }
+    ];
+
+    // Convert percentage to fraction (0-1)
+    const p = percentage / 100;
+
+    // Find which segment the percentage falls into
+    for (let i = 0; i < stops.length - 1; i++) {
+        const start = stops[i];
+        const end = stops[i + 1];
+
+        if (p >= start.pos && p <= end.pos) {
+            // Calculate factor within this segment (0-1)
+            const segmentLength = end.pos - start.pos;
+            const factor = segmentLength > 0 ? (p - start.pos) / segmentLength : 0;
+
+            // Interpolate between the two colors
+            const rgb1 = hexToRgb(start.color);
+            const rgb2 = hexToRgb(end.color);
+            const interpolated = interpolateColor(rgb1, rgb2, factor);
+
+            return rgbToHex(interpolated);
+        }
     }
 
-    progressFillElement.style.background = color;
+    // Fallback to last color
+    return stops[stops.length - 1].color;
+}
+
+// Generate gradient string for current percentage
+function generateGradientForPercentage(percentage) {
+    // Original gradient stops
+    const stops = [
+        { pos: 0.0, color: '#4f46e5' },
+        { pos: 0.2, color: '#8b5cf6' },
+        { pos: 0.57, color: '#ec4899' },
+        { pos: 1.0, color: '#f59e0b' }
+    ];
+
+    // Convert percentage to fraction (0-1)
+    const p = percentage / 100;
+
+    // Collect stops that are before or at current percentage
+    const gradientStops = [];
+
+    // Always include the first stop
+    gradientStops.push(`${stops[0].color} 0%`);
+
+    // Add intermediate stops that are before current percentage
+    for (let i = 1; i < stops.length; i++) {
+        if (stops[i].pos <= p) {
+            // This stop is within the current progress
+            const percentagePos = (stops[i].pos / p) * 100;
+            gradientStops.push(`${stops[i].color} ${percentagePos.toFixed(2)}%`);
+        }
+    }
+
+    // Add the current color at 100%
+    const currentColor = getColorAtPercentage(percentage);
+    gradientStops.push(`${currentColor} 100%`);
+
+    return `linear-gradient(90deg, ${gradientStops.join(', ')})`;
+}
+
+// Update progress bar color based on percentage
+function updateProgressBarColor(percentage) {
+    const gradient = generateGradientForPercentage(percentage);
+    progressFillElement.style.background = gradient;
 }
 
 // Initialize the page
