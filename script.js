@@ -200,10 +200,10 @@ function getTimeBasedColor(hour, minute, second) {
     const timeStops = [
         { pos: 0.0, color: '#000033' },    // Midnight - deep blue
         { pos: 0.15, color: '#1A237E' },
-        { pos: 0.20, color: '#9393e2' },
-        { pos: 0.25, color: '#87CEEB' },   // Early morning - sky blue (6:00)
-        { pos: 0.35, color: '#B0E2FF' },   // Morning - light sky blue (8:24)
-        { pos: 0.45, color: '#FFFFE0' },   // Late morning - light yellow (10:48)
+        { pos: 0.23, color: '#9393e2' },
+        { pos: 0.27, color: '#87CEEB' },   // Early morning - sky blue (6:00)
+        { pos: 0.38, color: '#B0E2FF' },   // Morning - light sky blue (8:24)
+        { pos: 0.49, color: '#FFFFE0' },   // Late morning - light yellow (10:48)
         { pos: 0.55, color: '#FFFFCC' },   // Noon - bright yellow (13:12)
         { pos: 0.65, color: '#FFCC99' },   // Afternoon - light orange (15:36)
         { pos: 0.75, color: '#FFA500' },   // Evening - orange (18:00)
@@ -262,24 +262,47 @@ function updateBackgroundGradient() {
     const currentTotalSeconds = currentHour * 3600 + currentMinute * 60 + currentSecond;
     const currentDayFraction = currentTotalSeconds / 86400;
 
-    // Calculate colors for current time, 30 minutes before, and 30 minutes after
-    // This creates a smooth gradient that transitions throughout the day
-    const prevOffset = 30 / 1440; // 30 minutes as fraction of day (1440 minutes in a day)
-    const nextOffset = 30 / 1440;
+    // Calculate colors for five time points: -2h, -1h, current, +1h, +2h
+    // This creates a richer gradient with more color variation
+    const hourOffset = 1 / 12; // 2 hours as fraction of day (2/24 = 1/12)
+    const halfHourOffset = 1 / 24; // 1 hour as fraction of day (1/24)
 
-    const prevColor = getColorAtDayFraction(currentDayFraction - prevOffset);
-    const currentColor = getColorAtDayFraction(currentDayFraction);
-    const nextColor = getColorAtDayFraction(currentDayFraction + nextOffset);
+    const colorMinus2 = getColorAtDayFraction(currentDayFraction - hourOffset);
+    const colorMinus1 = getColorAtDayFraction(currentDayFraction - halfHourOffset);
+    const colorCurrent = getColorAtDayFraction(currentDayFraction);
+    const colorPlus1 = getColorAtDayFraction(currentDayFraction + halfHourOffset);
+    const colorPlus2 = getColorAtDayFraction(currentDayFraction + hourOffset);
 
-    // Create a smooth diagonal gradient with three color stops
-    // Using 135deg angle for consistency with original design
-    const gradient = `linear-gradient(135deg, ${prevColor} 0%, ${currentColor} 50%, ${nextColor} 100%)`;
+    // Create a smooth diagonal gradient with five color stops
+    const linearGradient = `linear-gradient(135deg,
+        ${colorMinus2} 0%,
+        ${colorMinus1} 25%,
+        ${colorCurrent} 50%,
+        ${colorPlus1} 75%,
+        ${colorPlus2} 100%)`;
+
+    // Create a radial gradient for a glowing center effect
+    // The color is based on current time with slight transparency (using hex alpha channel)
+    const radialGradient = `radial-gradient(circle at 50% 50%,
+        ${colorCurrent}11 0%,
+        ${colorCurrent}04 40%,
+        transparent 60%)`;
+
+    // Create a subtle noise texture using repeating-radial-gradient
+    // This adds a fine grain effect without being distracting
+    const noiseTexture = `repeating-radial-gradient(circle at 50% 50%,
+        transparent 0px,
+        rgba(255, 255, 255, 0.02) 1px,
+        transparent 2px)`;
+
+    // Combine all layers: noise texture on top, radial glow in middle, linear gradient at bottom
+    const background = `${noiseTexture}, ${radialGradient}, ${linearGradient}`;
 
     // Apply to body background
-    document.body.style.background = gradient;
+    document.body.style.background = background;
 
     // Also update CSS variable for use in other elements if needed
-    document.documentElement.style.setProperty('--time-based-bg', currentColor);
+    document.documentElement.style.setProperty('--time-based-bg', colorCurrent);
 
     // Add smooth transition for background color changes (subtle)
     document.body.style.transition = 'background 0.5s ease';
