@@ -201,7 +201,7 @@ function getTimeBasedColor(hour, minute, second) {
         { pos: 0.0, color: '#000033' },    // Midnight - deep blue
         { pos: 0.15, color: '#1A237E' },
         { pos: 0.23, color: '#9393e2' },
-        { pos: 0.27, color: '#87CEEB' },   // Early morning - sky blue (6:00)
+        { pos: 0.27, color: '#87b9eb' },   // Early morning - sky blue (6:00)
         { pos: 0.38, color: '#B0E2FF' },   // Morning - light sky blue (8:24)
         { pos: 0.49, color: '#FFFFE0' },   // Late morning - light yellow (10:48)
         { pos: 0.55, color: '#FFFFCC' },   // Noon - bright yellow (13:12)
