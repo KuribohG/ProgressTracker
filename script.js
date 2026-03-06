@@ -85,6 +85,9 @@ function updateProgress() {
 
     // Update progress bar color based on progress
     updateProgressBarColor(percentage);
+
+    // Update background gradient based on time of day
+    updateBackgroundGradient();
 }
 
 // Convert hex color to RGB array
@@ -184,6 +187,102 @@ function generateGradientForPercentage(percentage) {
 function updateProgressBarColor(percentage) {
     const gradient = generateGradientForPercentage(percentage);
     progressFillElement.style.background = gradient;
+}
+
+// Calculate background color based on time of day (0-24 hours)
+function getTimeBasedColor(hour, minute, second) {
+    // Convert time to fraction of day (0-1)
+    const totalSeconds = hour * 3600 + minute * 60 + second;
+    const dayFraction = totalSeconds / 86400; // 24 * 60 * 60
+
+    // Define color stops for time of day (from midnight to midnight)
+    // These colors represent a smooth transition from night to day to night
+    const timeStops = [
+        { pos: 0.0, color: '#000033' },    // Midnight - deep blue
+        { pos: 0.15, color: '#1A237E' },
+        { pos: 0.20, color: '#9393e2' },
+        { pos: 0.25, color: '#87CEEB' },   // Early morning - sky blue (6:00)
+        { pos: 0.35, color: '#B0E2FF' },   // Morning - light sky blue (8:24)
+        { pos: 0.45, color: '#FFFFE0' },   // Late morning - light yellow (10:48)
+        { pos: 0.55, color: '#FFFFCC' },   // Noon - bright yellow (13:12)
+        { pos: 0.65, color: '#FFCC99' },   // Afternoon - light orange (15:36)
+        { pos: 0.75, color: '#FFA500' },   // Evening - orange (18:00)
+        { pos: 0.85, color: '#FF8C00' },   // Sunset - dark orange (20:24)
+        { pos: 0.90, color: '#C71585' },
+        { pos: 0.95, color: '#4B0082' },   // Night - indigo (22:48)
+        { pos: 1.0, color: '#000033' }     // Midnight - deep blue
+    ];
+
+    // Find which segment the time fraction falls into
+    for (let i = 0; i < timeStops.length - 1; i++) {
+        const start = timeStops[i];
+        const end = timeStops[i + 1];
+
+        if (dayFraction >= start.pos && dayFraction <= end.pos) {
+            // Calculate factor within this segment (0-1)
+            const segmentLength = end.pos - start.pos;
+            const factor = segmentLength > 0 ? (dayFraction - start.pos) / segmentLength : 0;
+
+            // Interpolate between the two colors
+            const rgb1 = hexToRgb(start.color);
+            const rgb2 = hexToRgb(end.color);
+            const interpolated = interpolateColor(rgb1, rgb2, factor);
+
+            return rgbToHex(interpolated);
+        }
+    }
+
+    // Fallback to midnight color
+    return '#000033';
+}
+
+// Get color at specific fraction of day (0-1)
+function getColorAtDayFraction(dayFraction) {
+    // Ensure dayFraction is in 0-1 range
+    dayFraction = dayFraction % 1;
+    if (dayFraction < 0) dayFraction += 1;
+
+    // Convert to hours, minutes, seconds for getTimeBasedColor
+    const totalSeconds = Math.floor(dayFraction * 86400);
+    const hour = Math.floor(totalSeconds / 3600);
+    const minute = Math.floor((totalSeconds % 3600) / 60);
+    const second = totalSeconds % 60;
+
+    return getTimeBasedColor(hour, minute, second);
+}
+
+// Update background gradient based on time of day
+function updateBackgroundGradient() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentSecond = now.getSeconds();
+
+    // Calculate current time as fraction of day (0-1)
+    const currentTotalSeconds = currentHour * 3600 + currentMinute * 60 + currentSecond;
+    const currentDayFraction = currentTotalSeconds / 86400;
+
+    // Calculate colors for current time, 30 minutes before, and 30 minutes after
+    // This creates a smooth gradient that transitions throughout the day
+    const prevOffset = 30 / 1440; // 30 minutes as fraction of day (1440 minutes in a day)
+    const nextOffset = 30 / 1440;
+
+    const prevColor = getColorAtDayFraction(currentDayFraction - prevOffset);
+    const currentColor = getColorAtDayFraction(currentDayFraction);
+    const nextColor = getColorAtDayFraction(currentDayFraction + nextOffset);
+
+    // Create a smooth diagonal gradient with three color stops
+    // Using 135deg angle for consistency with original design
+    const gradient = `linear-gradient(135deg, ${prevColor} 0%, ${currentColor} 50%, ${nextColor} 100%)`;
+
+    // Apply to body background
+    document.body.style.background = gradient;
+
+    // Also update CSS variable for use in other elements if needed
+    document.documentElement.style.setProperty('--time-based-bg', currentColor);
+
+    // Add smooth transition for background color changes (subtle)
+    document.body.style.transition = 'background 0.5s ease';
 }
 
 // Initialize the page
