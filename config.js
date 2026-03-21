@@ -5,8 +5,8 @@
 // Format: new Date(year, month, day, hour, minute, second)
 // Note: Months are 0-indexed (0 = January, 1 = February, etc.)
 const CONFIG = {
-    START_DATE: new Date(2026, 2, 4, 0, 0, 0),
-    END_DATE: new Date(2026, 3, 4, 0, 0, 0),
+    START_DATE: new Date(2026, 2, 21, 0, 0, 0),
+    END_DATE: new Date(2027, 7, 1, 0, 0, 0),
 
     // Display settings
     DATE_FORMAT: {
